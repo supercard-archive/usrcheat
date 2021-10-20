@@ -1,0 +1,6 @@
+usrcheat
+*.o
+usrcheat.dat*
+*.dat
+*.xml
+test*.*
