@@ -1,5 +1,5 @@
-usrcheat 1.0.0 (c) rofl0r
-=========================
+usrcheat
+========
 
 a tool to translate r4/dsone `usrcheat.dat` files into `cheats.xml` format
 and vice versa.
@@ -25,8 +25,11 @@ usage
 -----
 
 usrcheat MODE FILEIN FILEOUT
+
 MODE can be either of:
+
 toxml - read FILEIN as usrcheat.dat format, write FILEOUT as xml
+
 todat - read FILEIN as cheat.xml format, write FILEOUT as usrcheat.dat
 
 
@@ -56,6 +59,7 @@ format.
 the following 2 repos have been helpful:
 
 https://github.com/xperia64/Jusrcheat
+
 https://github.com/Epicpkmn11/NitroHax3DS
 
 thanks also go to the gbatemp community, in particular DeadSkullzJr for
