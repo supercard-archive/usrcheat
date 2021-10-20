@@ -32,6 +32,12 @@ toxml - read FILEIN as usrcheat.dat format, write FILEOUT as xml
 
 todat - read FILEIN as cheat.xml format, write FILEOUT as usrcheat.dat
 
+and
+
+r4crc ROMFILE
+
+prints crc32 of ROMFILE using the algorithm used for usrcheat.dat and cheats.xml
+
 
 build
 -----

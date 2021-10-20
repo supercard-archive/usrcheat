@@ -1,19 +1,20 @@
-APP = usrcheat
-OBJS = usrcheat.o
+APPS = usrcheat r4crc
 
 prefix = /usr/local
 bindir = $(prefix)/bin
 
 -include config.mak
 
-all: $(APP)
+all: $(APPS)
 
 clean:
-	rm -f $(APP) $(OBJS)
+	rm -f $(APPS) *.o
 
-install: $(APP)
-	install -Dm 755 $(APP) $(DESTDIR)$(bindir)/$(APP)
+install: $(APPS)
+	install -Dm 755 usrcheat $(DESTDIR)$(bindir)/usrcheat
+	install -Dm 755 r4crc $(DESTDIR)$(bindir)/r4crc
 
-$(APP): $(OBJS)
+usrcheat: usrcheat.o
+r4crc: r4crc.o
 
-.PHONY: all clean
+.PHONY: all clean install
