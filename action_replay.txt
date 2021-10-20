@@ -1,0 +1,96 @@
+from https://problemkaputt.de/gbatek.htm#dscartcheatactionreplayds
+
+DS Cart Cheat Action Replay DS
+
+The first commercial DS cheat code solution, this device was developed
+by Datel. It supports swapping out cartridges after loading the AR
+software. For updating, the user may either manually enter codes or use
+the included proprietary USB cable that comes with the device. The user
+has been able to manually update codes since firmware version 1.52.
+
+Action Replay DS Codes
+
+  ABCD-NNNNNNNN       Game ID ;ASCII Gamecode [00Ch] and CRC32 across [0..1FFh]
+  00000000 XXXXXXXX   manual hook codes (rarely used) (default is auto hook)
+  0XXXXXXX YYYYYYYY   word[XXXXXXX+offset] = YYYYYYYY
+  1XXXXXXX 0000YYYY   half[XXXXXXX+offset] = YYYY
+  2XXXXXXX 000000YY   byte[XXXXXXX+offset] = YY
+  3XXXXXXX YYYYYYYY   IF YYYYYYYY > word[XXXXXXX]   ;unsigned    ;\
+  4XXXXXXX YYYYYYYY   IF YYYYYYYY < word[XXXXXXX]   ;unsigned    ; for v1.54,
+  5XXXXXXX YYYYYYYY   IF YYYYYYYY = word[XXXXXXX]                ; when X=0,
+  6XXXXXXX YYYYYYYY   IF YYYYYYYY <> word[XXXXXXX]               ; uses
+  7XXXXXXX ZZZZYYYY   IF YYYY > ((not ZZZZ) AND half[XXXXXXX])   ; [offset]
+  8XXXXXXX ZZZZYYYY   IF YYYY < ((not ZZZZ) AND half[XXXXXXX])   ; instead of
+  9XXXXXXX ZZZZYYYY   IF YYYY = ((not ZZZZ) AND half[XXXXXXX])   ; [XXXXXXX]
+  AXXXXXXX ZZZZYYYY   IF YYYY <> ((not ZZZZ) AND half[XXXXXXX])  ;/
+  BXXXXXXX 00000000   offset = word[XXXXXXX+offset]
+  C0000000 YYYYYYYY   FOR loopcount=0 to YYYYYYYY  ;execute Y+1 times
+  C4000000 00000000   offset = address of the C4000000 code           ;v1.54
+  C5000000 XXXXYYYY   counter=counter+1, IF (counter AND YYYY) = XXXX ;v1.54
+  C6000000 XXXXXXXX   [XXXXXXXX]=offset                               ;v1.54
+  D0000000 00000000   ENDIF
+  D1000000 00000000   NEXT loopcount
+  D2000000 00000000   NEXT loopcount, and then FLUSH everything
+  D3000000 XXXXXXXX   offset = XXXXXXXX
+  D4000000 XXXXXXXX   datareg = datareg + XXXXXXXX
+  D5000000 XXXXXXXX   datareg = XXXXXXXX
+  D6000000 XXXXXXXX   word[XXXXXXXX+offset]=datareg, offset=offset+4
+  D7000000 XXXXXXXX   half[XXXXXXXX+offset]=datareg, offset=offset+2
+  D8000000 XXXXXXXX   byte[XXXXXXXX+offset]=datareg, offset=offset+1
+  D9000000 XXXXXXXX   datareg = word[XXXXXXXX+offset]
+  DA000000 XXXXXXXX   datareg = half[XXXXXXXX+offset]
+  DB000000 XXXXXXXX   datareg = byte[XXXXXXXX+offset] ;bugged on pre-v1.54
+  DC000000 XXXXXXXX   offset = offset + XXXXXXXX
+  EXXXXXXX YYYYYYYY   Copy YYYYYYYY parameter bytes to [XXXXXXXX+offset...]
+  44332211 88776655   parameter bytes 1..8 for above code  (example)
+  0000AA99 00000000   parameter bytes 9..10 for above code (padded with 00s)
+  FXXXXXXX YYYYYYYY   Copy YYYYYYYY bytes from [offset..] to [XXXXXXX...]
+
+IF/ENDIF can be nested up to 32 times. FOR/NEXT cannot be nested, any 
+FOR statement does forcefully terminate any prior loop. FOR does backup 
+the current IF condidition flags, and NEXT does restore these flags, so 
+ENDIF(s) aren't required inside of the loop. The NEXT+FLUSH command does 
+(after finishing the loop) reset offset=0, datareg=0, and does clear all 
+condition flags, so further ENDIF(s) aren't required after the loop. 
+Before v1.54, the DB000000 code did accidently set offset=offset+XXXXXXX 
+after execution of the code. For all word/halfword accesses, the address 
+should be aligned accordingly. For the COPY commands, addresses should 
+be aligned by four (all data is copied with ldr/str, except, on odd 
+lengths, the last 1..3 bytes do use ldrb/strb). offset, datareg, 
+loopcount, and counter are internal registers in the action replay 
+software.
+
+> The condition register is checked, for all code types
+> but the D0, D1 and D2 code type
+Makes sense.
+
+> and for the C5 code type it's checked AFTER the counter has
+> been incremented (so the counter is always incremented
+I love that exceptions ;-)
+
+Hook
+The hook codes consist of a series of nine 00000000 XXXXXXXX codes, 
+and must be marked as (M) code (for not being confused with normal 
+0XXXXXXX YYYYYYYY codes). For all nine codes, the left 32bit are 
+actually don't care (but should be zero), the meaning of the right 32bit 
+varies from 1st to 9th code.
+
+  1st: Address used prior to launching game (eg. 23xxxxxh)
+  2nd: Address to write the hook at (inside the ARM7 executable)
+  3rd: Hook final address (huh?)
+  4th: Hook mode selection (0=auto, 1=mode1, 2=mode2)
+  5th: Opcode that replaces the hooked one (eg. E51DE004h)
+  6th: Address to store important stuff  (default 23FE000h)
+  7th: Address to store the code handler (default 23FE074h)
+  8th: Address to store the code list    (default 23FE564h)
+  9th: Must be 1 (00000001h)
+
+For most games, the AR does automatically hook code on the ARM7.
+Doing that automatically is nice, but hooking ARM7 means that there is no
+access to VRAM, TCM and Cache, which <might> cause problems since
+efficient games <should> store all important data in TCM or Cache
+(though, in practice, I'd doubt that any existing NDS games are that
+efficient).
+
+Thanks
+To Kenobi and Dualscreenman from Kodewerx for above ARDS cheat info.
