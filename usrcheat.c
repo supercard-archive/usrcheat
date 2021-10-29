@@ -60,12 +60,13 @@ static char encbuf[8192];
 
 static char* sanitize_for_dat(char*s) {
 	static const struct {
-		char in[3];
+		char in[6];
 		char out[1];
 	} replacement_tab[] = {
-		/* change back «» to <> respectively */
-		{ "\302\253", "<" },                // «
-		{ "\302\273", ">" },                // »
+		/* change back replaced html escapes */
+		{ "&lt;", "<" },
+		{ "&gt;", ">" },
+		{ "&amp;", "&" },
 	};
 	char *p = s ? s : "";
 	char *q = encbuf, *e = encbuf+sizeof(encbuf)-1;
@@ -89,11 +90,15 @@ static char* sanitize_for_dat(char*s) {
 static char* sanitize_for_xml(char *s, enum encoding enc) {
 	static const struct {
 		char in[5];
-		char out[3];
+		char out[6];
 	} replacement_tab[] = {
-		/* we need to replace < > in order to not mess up xml */
-		{ "<", "\302\253" },                // «
-		{ ">", "\302\273" },                // »
+		/* we need to replace < > & in order to not mess up xml */
+		/* note: every one added here needs also to go into the
+		   if condition later on */
+		{ "<", "&lt;" },
+		{ ">", "&gt;" },
+		{ "&", "&amp;" },
+#define JUNK_START 3
 		/* replace some garbage characters contained in GBAtemp_26-03-11 usrcheat.dat release
 		   the file declares encoding as GBK but that just produces
 		   chinese chars inside european words.
@@ -116,7 +121,7 @@ static char* sanitize_for_xml(char *s, enum encoding enc) {
 	int ret = 0, nc = 0;
 	/* step 1: replace from known bad character table */
 	while(*p) {
-		if(*p < ' ' || *p == '<' || *p == '>') {
+		if(*p < ' ' || *p == '<' || *p == '>' || *p == '&') {
 			const int tab_count = sizeof(replacement_tab)/sizeof(replacement_tab[0]);
 			for(i = 0; i < tab_count; ++i) {
 				if(startswith(p, replacement_tab[i].in)) {
@@ -125,8 +130,8 @@ static char* sanitize_for_xml(char *s, enum encoding enc) {
 					q+=strlen(replacement_tab[i].out)-1;
 					break;
 				}
-				/* only process < and > if encoding is already utf-8 */
-				if(i >= 1 && enc == ENC_UTF8) break;
+				/* only process html escapes if encoding is already utf-8 */
+				if(i >= JUNK_START-1 && enc == ENC_UTF8) break;
 			}
 			if(i == tab_count) { *q = *p ;	++nc; }
 		} else
