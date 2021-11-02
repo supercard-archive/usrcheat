@@ -521,7 +521,7 @@ static void print_cheat(FILE *f, struct cheatitem *it, int indent) {
 	}
 }
 
-static void print_game(FILE *f, struct game *g, int encoding) {
+static void print_game(FILE *f, struct game *g, int encoding, int fat) {
 	unsigned i;
 	fprintf(f, "\t<game>\n\t\t<name>%s</name>\n", sanitize_for_xml(g->name, encoding));
 	fprintf(f, "\t\t<gameid>%s %08X</gameid>\n", id2str(g->id), g->crc);
@@ -541,6 +541,8 @@ static void print_game(FILE *f, struct game *g, int encoding) {
 				fprintf(f, "\t\t\t<note>%s</note>\n", sanitize_for_xml(it->note, encoding));
 			if(it->flags & CHEATITEM_FLAG_ONEHOT)
 				fprintf(f, "\t\t\t<allowedon>1</allowedon>\n");
+			else if(fat)
+				fprintf(f, "\t\t\t<allowedon>0</allowedon>\n");
 			indent = it->n;
 		} else {
 			fprintf(f, "\t\t%s<cheat>\n\t\t\t%s<name>%s</name>\n",
@@ -548,6 +550,7 @@ static void print_game(FILE *f, struct game *g, int encoding) {
 			if(it->note && it->note[0])
 				fprintf(f, "\t\t\t%s<note>%s</note>\n", INDENT, sanitize_for_xml(it->note, encoding));
 			if(it->n) print_cheat(f, it, indent);
+			else if(fat) fprintf(f, "\t\t\t%s<codes></codes>\n", INDENT);
 			fprintf(f, "\t\t%s</cheat>\n", INDENT);
 			if(indent) {
 				if(--indent == 0) fprintf(f, "\t\t</folder>\n");
@@ -557,7 +560,7 @@ static void print_game(FILE *f, struct game *g, int encoding) {
 	fprintf(f, "\t</game>\n");
 }
 
-int cheatdb_write_xml(struct cheatdb *db, char *fn, char**error) {
+int cheatdb_write_xml(struct cheatdb *db, char *fn, char**error, int fat) {
 	FILE *f = fopen(fn, "w");
 	if(!f) {
 		*error = "error opening outfile";
@@ -567,7 +570,7 @@ int cheatdb_write_xml(struct cheatdb *db, char *fn, char**error) {
 	fprintf(f, "\t<name>%s</name>\n", db->name);
 	unsigned g;
 	for(g = 0; g < db->n_games; ++g) {
-		print_game(f, &db->games[g], db->encoding);
+		print_game(f, &db->games[g], db->encoding, fat);
 	}
 	fprintf(f, "</codelist>\n");
 	fclose(f);
@@ -835,8 +838,11 @@ static int usage(char *argv0) {
 		"\n"
 		"usage: %s MODE FILEIN FILEOUT\n"
 		"MODE can be either of:\n"
-		"toxml - read FILEIN as usrcheat.dat format, write FILEOUT as xml\n"
-		"todat - read FILEIN as cheat.xml format, write FILEOUT as usrcheat.dat\n"
+		"toxml    - read FILEIN as usrcheat.dat format, write FILEOUT as xml\n"
+		"tofatxml - read FILEIN as usrcheat.dat format, write FILEOUT as xml\n"
+		"           includes nop exprs like <codes></codes> as found in gbatemp files.\n"
+		"todat    - read FILEIN as cheat.xml format, write FILEOUT as usrcheat.dat\n"
+
 	, argv0);
 	return 1;
 }
@@ -846,18 +852,19 @@ int main(int argc, char** argv) {
 	char *error, *fnin, *fnout;
 	if(argc != 4) return usage(argv[0]);
 	int mode = -1;
-	if(!strcmp(argv[1], "toxml")) mode = 0;
-	if(!strcmp(argv[1], "todat")) mode = 1;
+	if(!strcmp(argv[1], "todat")) mode = 0;
+	if(!strcmp(argv[1], "toxml")) mode = 1;
+	if(!strcmp(argv[1], "tofatxml")) mode = 2;
 	if(mode == -1) return usage(argv[0]);
 	fnin = argv[2];
 	fnout = argv[3];
-	if(mode == 0) {
+	if(mode > 1) {
 		if(!cheatdb_read(&db, fnin, &error)) {
 		e:
 			fprintf(stderr, "error! %s\n", error);
 			return 1;
 		}
-		if(!cheatdb_write_xml(&db, fnout, &error)) goto e;
+		if(!cheatdb_write_xml(&db, fnout, &error, mode == 2)) goto e;
 	} else {
 		long lineno;
 		if(!cheatdb_read_xml(&db, fnin, &error, &lineno)) {
