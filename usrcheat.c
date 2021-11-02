@@ -105,8 +105,10 @@ static char* sanitize_for_xml(char *s, enum encoding enc) {
 		   we replace them with ascii chars rather than the correct
 		   utf-8 runes, in order to prevent further issues when
 		   converting back and forth. */
+		{ "\251bts", "ssts" /*"\303\237"*/ },       // ß in "bewußtsein"
+		{ "\244gme", "omme"},                       // ø in "Drømmespejlet"
+		{ "\xCC\x9D\x6C\x79", "akly" },             // å in "Flåklypa"
 		{ "\245\243\245\362", "e" /*"\303\251"*/ }, // é
-		{ "\251b", "ss" /*"\303\237"*/ },           // ß
 		{ "\245\243\241\242", "a" /*"\303\240"*/ }, // à
 		{ "\245\243\245\250", "u" /*"\303\271"*/ }, // ù
 		{ "\241\243\245\303", "'" /*"\302\264"*/ }, // ´
