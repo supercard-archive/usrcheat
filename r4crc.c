@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
 	crc32_r4_init(&r4ctx);
 
-	FILE *f = fopen(argv[1], "r");
+	FILE *f = fopen(argv[1], "rb");
 	if(!f) {
 		perror("fopen");
 		return 1;
