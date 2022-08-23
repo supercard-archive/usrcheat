@@ -333,7 +333,7 @@ static const struct cheatdb db_empty = {0};
 int cheatdb_read(struct cheatdb *res, char* fn, char **error) {
 	memcpy(res, &db_empty, sizeof db_empty);
 
-	FILE *f = fopen(fn, "r");
+	FILE *f = fopen(fn, "rb");
 	if(!f) {
 		*error = "can't open file";
 		return 0;
@@ -413,7 +413,7 @@ int cheatdb_write(struct cheatdb *db, char* fn, char** error) {
 	unsigned i, j;
 	memcpy(header+12, &u, 4);
 	memcpy(header+16, db->name, 0x3b);
-	FILE *f = fopen(fn, "w");
+	FILE *f = fopen(fn, "wb");
 	if(!f) {
 		*error = "can't open file";
 		return 0;
