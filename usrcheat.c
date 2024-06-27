@@ -858,7 +858,7 @@ int main(int argc, char** argv) {
 	if(mode == -1) return usage(argv[0]);
 	fnin = argv[2];
 	fnout = argv[3];
-	if(mode > 1) {
+	if(mode >= 1) {
 		if(!cheatdb_read(&db, fnin, &error)) {
 		e:
 			fprintf(stderr, "error! %s\n", error);
